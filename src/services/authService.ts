@@ -1,6 +1,9 @@
 import * as msal from '@azure/msal-browser';
 import { config } from '../authConfig';
-import { authStore } from '../lib/store/authStore'; // Asegúrate de que la ruta es correcta
+import { authStore } from '../lib/store/authStore';
+import { getUserSettings } from './apiService';
+import { redirect } from '@sveltejs/kit';
+import type { User } from '../models/User';
 
 const msalConfig = {
     auth: {
@@ -10,7 +13,7 @@ const msalConfig = {
     }
 };
 
-export const msalInstance = new msal.PublicClientApplication(msalConfig);
+export let msalInstance = new msal.PublicClientApplication(msalConfig);
 
 function base64URLEncode(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
@@ -33,10 +36,17 @@ export async function generateCodeChallenge(codeVerifier: string): Promise<strin
 }
 
 export async function initialize() {
+    // cambiar el client id y el tenant id
+    msalConfig.auth.clientId = config.clientId;
+    msalConfig.auth.authority = `https://login.microsoftonline.com/${config.tenantId}`;
+    msalConfig.auth.redirectUri = config.redirectUri;
+    msalInstance = new msal.PublicClientApplication(msalConfig);
+
     await msalInstance.initialize();
 }
 
-export async function login(email: string) {
+export async function login(user: User) {
+    console.log(config);
     if (msalInstance.getAllAccounts().length > 0) {
         console.log("User already logged in");
         return;
@@ -58,40 +68,24 @@ export async function login(email: string) {
         codeChallenge: codeChallenge,
         codeChallengeMethod: "S256"
     };
-    msalInstance.loginPopup(loginRequest).then((loginResponse) => {
-        console.log("id_token acquired at: " + new Date().toString());
-        console.log(loginResponse);
-   
+    try {
+        const loginResponse = await msalInstance.loginPopup(loginRequest);
+
         const tokenRequest = {
-          scopes: ["User.Read"],
-          account: loginResponse.account,
+            scopes: [config.scopes[0]],
+            account: loginResponse.account
         };
-   
-        msalInstance.acquireTokenSilent(tokenRequest).then((tokenResponse) => {
-            console.log("access_token acquired at: " + new Date().toString());
-            console.log(tokenResponse.accessToken);
-            authStore.set({
-                isAuthenticated: true,
-                accessToken: tokenResponse.accessToken,
-                user: loginResponse.account
-            });
-        }).catch((error) => {
-          console.error(error);
-          msalInstance.acquireTokenPopup(tokenRequest).then((tokenResponse) => {
-            console.log("access_token acquired at: " + new Date().toString());
-            console.log(tokenResponse.accessToken);
-            authStore.set({
-                isAuthenticated: true,
-                accessToken: tokenResponse.accessToken,
-                user: loginResponse.account
-            });
-          }).catch((error) => {
-            console.error(error);
-          });
+
+        const tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
+        authStore.set({
+            isAuthenticated: true,
+            accessToken: tokenResponse.accessToken,
+            user: user
         });
-      }).catch((error) => {
+    } catch (error) {
         console.error(error);
-      });
+        throw error;
+    }
 }
 
 export async function isLoggedIn() {
@@ -99,20 +93,9 @@ export async function isLoggedIn() {
     return msalInstance.getAllAccounts().length > 0;
 }
 
-export async function handleRedirect() {
-    const response = await msalInstance.handleRedirectPromise();
-    if (response && response.account) {
-        authStore.set({
-            isAuthenticated: true,
-            accessToken: response.accessToken,
-            user: response.account
-        });
-    }
-    return response;
-}
-
 export async function logout() {
-    await msalInstance.logoutRedirect();
+    await initialize();
+    await msalInstance.logoutPopup();
     authStore.set({
         isAuthenticated: false,
         accessToken: null,

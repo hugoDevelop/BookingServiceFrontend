@@ -1,12 +1,35 @@
-<script>
+<script lang="ts">
   import "bootstrap/dist/css/bootstrap.min.css";
-  import { initialize, login, msalInstance } from "../../services/authService";
+  import { initialize, login } from "../../services/authService";
+  import type { User } from "../../models/User";
+  import { getUserSettings } from "../../services/apiService";
+  import { config } from "../../authConfig";
 
   let email = "";
+  let user: User | null = null;
+  let error: string | null = null;
+  let isLoading = false;
 
   async function handleLogin() {
-    await initialize();
-    await login(email); // Inicia el flujo de autenticación con OAuth2
+    isLoading = true;
+    try {
+      user = await getUserSettings(email);
+
+      config.authorizationEndpoint = user.company?.authUrl || "";
+      config.clientId = user.company?.authClientId || "";
+      config.redirectUri = user.company?.authRedirectUrl || "";
+      config.scopes = user.company?.authScope?.split(",") || [];
+      config.tokenEndpoint = user.company?.authTokenUrl || "";
+
+      await initialize();
+      await login(user);
+      isLoading = false;
+      window.location.href = "/reservas";
+    } catch (err) {
+      const errorObj = err as Error;
+      error = errorObj.message;
+      isLoading = false;
+    }
   }
 </script>
 
@@ -24,7 +47,17 @@
           required
         />
       </div>
-      <button type="submit" class="btn btn-primary w-100">Login</button>
+      {#if error}
+        <div class="alert alert-danger" role="alert">{error}</div>
+      {/if}
+      {#if isLoading}
+        <div class="spinner-border text-primary mt-2" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      {/if}
+      {#if !isLoading}
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      {/if}
     </form>
   </div>
 </div>

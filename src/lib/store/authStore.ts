@@ -1,9 +1,10 @@
 import { writable } from 'svelte/store';
+import type { User } from '../../models/User';
 
 interface AuthState {
     isAuthenticated: boolean;
     accessToken: string | null;
-    user: any | null;
+    user: User | null;
 }
 
 // Cargar el estado inicial desde localStorage solo en el cliente
