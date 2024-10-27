@@ -36,7 +36,7 @@ export async function initialize() {
     await msalInstance.initialize();
 }
 
-export async function login() {
+export async function login(email: string) {
     if (msalInstance.getAllAccounts().length > 0) {
         console.log("User already logged in");
         return;

@@ -6,7 +6,7 @@
 
   async function handleLogin() {
     await initialize();
-    await login(); // Inicia el flujo de autenticación con OAuth2
+    await login(email); // Inicia el flujo de autenticación con OAuth2
   }
 </script>
 
