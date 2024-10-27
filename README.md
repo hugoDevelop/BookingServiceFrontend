@@ -1,38 +1,59 @@
-# create-svelte
+# Booking Service Frontend
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+## Descripción
 
-## Creating a project
+Esta es una aplicación frontend construida con SvelteKit que proporciona interfaces para gestionar reservas. Las funcionalidades incluyen:
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Hacer una nueva reserva.
+- Modificar una reserva existente.
+- Cancelar una reserva.
+- Ver todas las reservas, con opciones de filtro por fecha, servicio y cliente.
+
+La aplicación implementa un manejo adecuado de errores en el frontend, asegurando que los usuarios reciban mensajes claros y útiles en caso de errores o fallos en la comunicación con el backend.
+
+## Requisitos
+
+- Node.js (versión 16 o superior)
+- npm (versión 7 o superior)
+
+## Instalación
+
+Clona el repositorio y navega al directorio del proyecto:
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+git clone https://github.com/tu-usuario/BookingServiceFrontend.git
+cd BookingServiceFrontend
 ```
 
-## Developing
+Instala las dependencias:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+```bash
+npm install
+```
+
+## Desarrollo
+
+Para iniciar el servidor de desarrollo:
 
 ```bash
 npm run dev
 
-# or start the server and open the app in a new browser tab
+# o para iniciar el servidor y abrir la aplicación en una nueva pestaña del navegador
 npm run dev -- --open
 ```
 
-## Building
+## Construcción
 
-To create a production version of your app:
+Para crear una versión de producción de tu aplicación:
 
 ```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+Puedes previsualizar la construcción de producción con:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+> Para desplegar tu aplicación, puede que necesites instalar un adaptador para tu entorno de destino.
